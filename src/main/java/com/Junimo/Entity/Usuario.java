@@ -15,27 +15,27 @@ public class Usuario {
     private int run;
     
     @Column(name="nombre", length=40, nullable = false)
-    private String firstName;
+    private String nombre;
     
     @Column(name="apellidos", length=70, nullable = false)
-    private String lastName;
+    private String apellidos;
     
-    @Column(name="email", length=100, nullable = false)
+    @Column(name="correo", length=100, nullable = false)
     private String correo;
 
     @Column(name="direccion", length=200, nullable = false)
     private String direccion;
 
+    @Column(name="fecha_nac", nullable = false)
+    private Date fechaNac;
+
     @Column(name="region", nullable = false)
     private String region;
-
-    @Column(name="fecha_nac", nullable = false)
-    private Date fecha_nac;
 
     @Column(name="comuna", nullable = false)
     private String comuna;
 
-    @Column(name="telefono", length=9)
+    @Column(name="telefono", length=9, nullable = true)
     private int telefono;
 
     @Column(name="tipo", nullable = false)
@@ -53,20 +53,20 @@ public class Usuario {
         this.run = run;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getApellidos() {
+        return apellidos;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setApellidos(String apellidos) {
+        this.apellidos = apellidos;
     }
 
     public String getCorreo() {
@@ -85,20 +85,20 @@ public class Usuario {
         this.direccion = direccion;
     }
 
+    public Date getFechaNac() {
+        return fechaNac;
+    }
+
+    public void setFechaNac(Date fecha_nac) {
+        this.fechaNac = fecha_nac;
+    }
+    
     public String getRegion() {
         return region;
     }
 
     public void setRegion(String region) {
         this.region = region;
-    }
-
-    public Date getFecha_nac() {
-        return fecha_nac;
-    }
-
-    public void setFecha_nac(Date fecha_nac) {
-        this.fecha_nac = fecha_nac;
     }
 
     public String getComuna() {
@@ -137,12 +137,12 @@ public class Usuario {
     public String toString() {
         return "Usuario{" +
                 "run=" + run +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
+                ", nombre='" + nombre + '\'' +
+                ", apellidos='" + apellidos + '\'' +
                 ", correo='" + correo + '\'' +
                 ", direccion='" + direccion + '\'' +
+                ", fechaNac=" + fechaNac +
                 ", region='" + region + '\'' +
-                ", fecha_nac=" + fecha_nac +
                 ", comuna='" + comuna + '\'' +
                 ", telefono=" + telefono +
                 ", tipo='" + tipo + '\'' +

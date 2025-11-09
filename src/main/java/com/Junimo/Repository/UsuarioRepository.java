@@ -9,9 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer>{
     
-    public Usuario findByFirstName(String name);
-    public Usuario findByFirstName(String name);
-    public Usuario findByFirstName(String name);
-    public Usuario findByFirstName(String name);
-    
+    public Usuario findByNombre(String name);
+    public Usuario findByCorreo(String correo);
+    public Usuario findByTipo(String tipo);    
 }
