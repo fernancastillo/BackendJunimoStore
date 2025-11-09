@@ -135,18 +135,10 @@ public class Usuario {
 
     @Override
     public String toString() {
-        return "Usuario{" +
-                "run=" + run +
-                ", nombre='" + nombre + '\'' +
-                ", apellidos='" + apellidos + '\'' +
-                ", correo='" + correo + '\'' +
-                ", direccion='" + direccion + '\'' +
-                ", fechaNac=" + fechaNac +
-                ", region='" + region + '\'' +
-                ", comuna='" + comuna + '\'' +
-                ", telefono=" + telefono +
-                ", tipo='" + tipo + '\'' +
-                ", contrasenha='" + contrasenha + '\'' +
-                '}';
+        return "Usuario [run=" + run + ", nombre=" + nombre + ", apellidos=" + apellidos + ", correo=" + correo
+                + ", direccion=" + direccion + ", fechaNac=" + fechaNac + ", region=" + region + ", comuna=" + comuna
+                + ", telefono=" + telefono + ", tipo=" + tipo + ", contrasenha=" + contrasenha + "]";
     }
+
+    
 }

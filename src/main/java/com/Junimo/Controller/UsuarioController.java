@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.Junimo.Entity.Usuario;
 import com.Junimo.Service.UsuarioService;
 
@@ -17,7 +16,6 @@ import com.Junimo.Service.UsuarioService;
  *
  * @author Fernando
  */
-
 @RestController
 
 public class UsuarioController {
@@ -29,15 +27,15 @@ public class UsuarioController {
     public Usuario addUsuario(@RequestBody Usuario u){
         return service.saveUsuario(u);
     }
+
+    @GetMapping("/usuariosById/{run}")
+    public Usuario findUsuarioById(@PathVariable int run){
+        return service.getUsuarioById(run);
+    }
     
     @GetMapping("/usuarios")
     public List<Usuario> findAllUsuario(){
         return service.getUsuarios();
-    }
-    
-    @GetMapping("/usuarioByName/{nombre}")
-    public Usuario findByNombre(@PathVariable String nombre){
-        return service.getUsuarioByNombre(nombre);
     }
     
     @DeleteMapping("/delete/{run}")
@@ -50,18 +48,13 @@ public class UsuarioController {
         return service.updateUsuario(u);
     }
 
-    @GetMapping("/usuariosByNombre/{run}")
-    public Usuario findUsuarioById(@PathVariable int run){
-        return service.getUsuarioById(run);
-    }
-
     @GetMapping("/usuariosByCorreo/{correo}")
     public Usuario findUsuarioByCorreo(@PathVariable String correo){
         return service.getUsuarioByCorreo(correo);
     }
 
     @GetMapping("/usuariosByTipo/{tipo}")
-    public Usuario findUsuarioById(@PathVariable String tipo){
+    public Usuario findUsuarioByTipo(@PathVariable String tipo){
         return service.getUsuarioByTipo(tipo);
     }
     

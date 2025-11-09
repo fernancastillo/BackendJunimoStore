@@ -3,7 +3,6 @@ package com.Junimo.Service;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.Junimo.Entity.Usuario;
 import com.Junimo.Repository.UsuarioRepository;
 
@@ -17,8 +16,7 @@ public class UsuarioService {
     
     @Autowired
     private UsuarioRepository repository;
-    
-    //CRUD:
+
     public Usuario saveUsuario(Usuario u){
         return repository.save(u);
     }
@@ -38,6 +36,9 @@ public class UsuarioService {
     
     public Usuario updateUsuario(Usuario u){
         Usuario existingUsuario = repository.findById(u.getRun() ).orElse(null);
+        if (existingUsuario == null) {
+        throw new RuntimeException("Usuario con RUN " + u.getRun() + " no encontrado.");
+        }
         existingUsuario.setNombre( u.getNombre() );
         existingUsuario.setApellidos( u.getApellidos() );
         existingUsuario.setCorreo( u.getCorreo() );
