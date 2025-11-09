@@ -2,6 +2,8 @@ package com.Junimo.Repository;
 
 import com.Junimo.Entity.Orden;
 import java.sql.Date;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -10,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface OrdenRepository extends JpaRepository<Orden, String> {
     
-    public Orden findByRun(int run);
-    public Orden findByEstado(String tipo);
-    public Orden findByFecha(Date fecha); 
+    public List<Orden> findByUsuarioRun(int run);
+    public List<Orden> findByEstadoEnvio(String tipo);
+    public List<Orden> findByFecha(Date fecha); 
 }

@@ -48,15 +48,15 @@ public class OrdenService {
         return repository.save(existingOrden);
     }
 
-    public Orden getOrdenByRun(int run){
-        return repository.findByRun(run);
+    public List<Orden> getOrdenByRun(int run){
+        return repository.findByUsuarioRun(run);
     }
 
-    public Orden getOrdenByEstado(String estado){
-        return repository.findByEstado(estado);
+    public List<Orden> getOrdenByEstado(String estado){
+        return repository.findByEstadoEnvio(estado);
     }
 
-    public Orden getOrdenByFecha(Date fecha){
+    public List<Orden> getOrdenByFecha(Date fecha){
         return repository.findByFecha(fecha);
     }
 

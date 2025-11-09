@@ -32,12 +32,12 @@ public class OrdenController {
         return service.getOrdenByNumero(numero);
     }
 
-    @PutMapping("/update")
+    @PutMapping("/updateOrden")
     public Orden updateOrden(@RequestBody Orden o) {
         return service.updateOrden(o);
     }
 
-    @DeleteMapping("/delete/{numero}")
+    @DeleteMapping("/deleteOrden/{numero}")
     public String deleteOrden(@PathVariable String numero) {
         return service.deleteOrden(numero);
     }

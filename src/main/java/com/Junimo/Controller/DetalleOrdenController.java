@@ -31,12 +31,12 @@ public class DetalleOrdenController {
         return service.saveDetalle(d);
     }
 
-    @PutMapping("/update")
+    @PutMapping("/updateDetalleOrden")
     public DetalleOrden updateDetalleOrden(@RequestBody DetalleOrden d){
         return service.updateDetalleOrden(d);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/deleteDetalleOrden/{id}")
     public String deleteDetalle(@PathVariable int id) {
         return service.deleteDetalle(id);
     }

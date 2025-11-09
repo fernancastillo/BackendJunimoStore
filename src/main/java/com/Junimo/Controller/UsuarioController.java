@@ -38,12 +38,12 @@ public class UsuarioController {
         return service.getUsuarios();
     }
     
-    @DeleteMapping("/delete/{run}")
+    @DeleteMapping("/deleteUsuario/{run}")
     public String deleteEmployee(@PathVariable int run){
         return service.deleteUsuario(run);
     }
     
-    @PutMapping("/update")
+    @PutMapping("/updateUsuario")
     public Usuario updateUsuario(@RequestBody Usuario u){
         return service.updateUsuario(u);
     }
