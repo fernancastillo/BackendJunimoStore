@@ -9,5 +9,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface DetalleOrdenRepository extends JpaRepository<DetalleOrden, Integer> { 
 
-    public DetalleOrden findDetalleByNombreProducto(String nombreProducto);
 }

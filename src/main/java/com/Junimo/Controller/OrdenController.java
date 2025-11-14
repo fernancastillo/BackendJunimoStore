@@ -11,7 +11,7 @@ import java.util.List;
  * @author Fernando
  */
 @RestController
-
+@RequestMapping("/v1")
 public class OrdenController {
 
     @Autowired

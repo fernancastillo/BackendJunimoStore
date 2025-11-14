@@ -11,6 +11,7 @@ import java.util.List;
  * @author Fernando
  */
 @RestController
+@RequestMapping("/v1")
 public class DetalleOrdenController {
 
     @Autowired
@@ -29,21 +30,6 @@ public class DetalleOrdenController {
     @PostMapping("/addDetalleOrden")
     public DetalleOrden addDetalle(@RequestBody DetalleOrden d) {
         return service.saveDetalle(d);
-    }
-
-    @PutMapping("/updateDetalleOrden")
-    public DetalleOrden updateDetalleOrden(@RequestBody DetalleOrden d){
-        return service.updateDetalleOrden(d);
-    }
-
-    @DeleteMapping("/deleteDetalleOrden/{id}")
-    public String deleteDetalle(@PathVariable int id) {
-        return service.deleteDetalle(id);
-    }
-
-    @GetMapping("/detallesOrdenesByNombre/{nombre}")
-    public DetalleOrden findDetalleByNombreDetalle(@PathVariable String nombre){
-        return service.getDetalleByNombreDetalle(nombre);
     }
 }
 

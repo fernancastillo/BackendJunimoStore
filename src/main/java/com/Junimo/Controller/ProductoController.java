@@ -21,7 +21,7 @@ import com.Junimo.Service.ProductoService;
  */
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/v1")
 public class ProductoController {
     
     @Autowired

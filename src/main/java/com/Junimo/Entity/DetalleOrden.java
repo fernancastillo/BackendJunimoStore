@@ -19,17 +19,12 @@ public class DetalleOrden {
     @JoinColumn(name = "numero_orden", nullable = false)
     private Orden orden;
 
-    @Column(name = "codigo_producto", length = 20, nullable = false)
-    private String codigoProducto;
-
-    @Column(name = "nombre_producto", length = 100, nullable = false)
-    private String nombreProducto;
+    @ManyToOne
+    @JoinColumn(name = "codigo_producto", referencedColumnName = "codigo", nullable = false)
+    private Producto producto;
 
     @Column(nullable = false)
     private int cantidad;
-
-    @Column(nullable = false)
-    private int precio;
 
     public int getId() {
         return id;
@@ -47,20 +42,12 @@ public class DetalleOrden {
         this.orden = orden;
     }
 
-    public String getCodigoProducto() {
-        return codigoProducto;
+    public Producto getProducto() {
+        return producto;
     }
 
-    public void setCodigoProducto(String codigoProducto) {
-        this.codigoProducto = codigoProducto;
-    }
-
-    public String getNombreProducto() {
-        return nombreProducto;
-    }
-
-    public void setNombreProducto(String nombreProducto) {
-        this.nombreProducto = nombreProducto;
+    public void setProducto(Producto producto) {
+        this.producto = producto;
     }
 
     public int getCantidad() {
@@ -71,19 +58,9 @@ public class DetalleOrden {
         this.cantidad = cantidad;
     }
 
-    public int getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(int precio) {
-        this.precio = precio;
-    }
-
     @Override
     public String toString() {
-        return "DetalleOrden [id=" + id + ", orden=" + orden + ", codigoProducto=" + codigoProducto
-                + ", nombreProducto=" + nombreProducto + ", cantidad=" + cantidad + ", precio=" + precio + "]";
+        return "DetalleOrden [id=" + id + ", orden=" + orden 
+                + ", producto=" + producto + ", cantidad=" + cantidad + "]";
     }
-
-    
 }
