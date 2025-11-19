@@ -3,6 +3,8 @@ package com.Junimo.Entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 /**
@@ -24,7 +26,8 @@ public class Categoria {
     @Column(name="nombre", length = 100, nullable = false)
     private String nombre;
 
-    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "categoria")
+    @JsonIgnore
     private List<Producto> productos = new ArrayList<>();
 
     public int getId() {

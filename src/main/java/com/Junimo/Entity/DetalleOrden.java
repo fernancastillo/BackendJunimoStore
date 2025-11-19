@@ -1,6 +1,8 @@
 package com.Junimo.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 /**
@@ -17,6 +19,7 @@ public class DetalleOrden {
 
     @ManyToOne
     @JoinColumn(name = "numero_orden", nullable = false)
+    @JsonIgnore
     private Orden orden;
 
     @ManyToOne
