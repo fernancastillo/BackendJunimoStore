@@ -13,7 +13,7 @@ import java.util.List;
 public class Orden {
 
     @Id
-    @Column(name = "numero_orden", length = 20)
+    @Column(name = "numero_orden", length = 20, nullable = false)
     private String numeroOrden;
 
     @Column(nullable = false)

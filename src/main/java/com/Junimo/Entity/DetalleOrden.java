@@ -20,7 +20,7 @@ public class DetalleOrden {
     private Orden orden;
 
     @ManyToOne
-    @JoinColumn(name = "codigo_producto", referencedColumnName = "codigo", nullable = false)
+    @JoinColumn(name = "codigo_producto", nullable = false)
     private Producto producto;
 
     @Column(nullable = false)

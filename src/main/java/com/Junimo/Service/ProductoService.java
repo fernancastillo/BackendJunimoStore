@@ -27,7 +27,7 @@ public class ProductoService {
         return repository.findAll();
     }
     
-    public Producto getProductoById(int codigo) {
+    public Producto getProductoById(String codigo) {
         return repository.findById(codigo).orElse(null);
     }
     
@@ -51,7 +51,7 @@ public class ProductoService {
         return repository.findByPrecioBetween(precioMin, precioMax);
     }
     
-    public String deleteProducto(int codigo) {
+    public String deleteProducto(String codigo) {
         if (repository.existsById(codigo)) {
             repository.deleteById(codigo);
             return "Producto eliminado: " + codigo;

@@ -12,8 +12,8 @@ import jakarta.persistence.*;
 public class Producto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int codigo;
+    @Column(name = "codigo_producto", length = 20, nullable = false)
+    private String codigo;
 
     @Column(name="nombre", length = 100, nullable = false)
     private String nombre;
@@ -37,24 +37,11 @@ public class Producto {
     @Column(name="imagen", length = 255, nullable = true)
     private String imagen;
 
-    public Producto() {}
-
-    public Producto(String nombre, String descripcion, Categoria categoria, 
-                   double precio, int stockActual, int stockCritico) {
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.categoria = categoria;
-        this.precio = precio;
-        this.stockActual = stockActual;
-        this.stockCritico = stockCritico;
-    }
-
-
-    public int getCodigo() {
+    public String getCodigo() {
         return codigo;
     }
 
-    public void setCodigo(int codigo) {
+    public void setCodigo(String codigo) {
         this.codigo = codigo;
     }
 
@@ -114,33 +101,12 @@ public class Producto {
         this.imagen = imagen;
     }
 
-     public boolean tieneStockSuficiente() {
-        return stockActual > 0;
-    }
-    
-    public boolean necesitaReposicion() {
-        return stockActual <= stockCritico;
-    }
-    
-    public void reducirStock(int cantidad) {
-        this.stockActual -= cantidad;
-    }
-    
-    public void aumentarStock(int cantidad) {
-        this.stockActual += cantidad;
-    }
-
     @Override
     public String toString() {
-        return "Producto{" +
-                "codigo=" + codigo +
-                ", nombre='" + nombre + '\'' +
-                ", descripcion='" + descripcion + '\'' +
-                ", categoria=" + categoria +
-                ", precio=" + precio +
-                ", stockActual=" + stockActual +
-                ", stockCritico=" + stockCritico +
-                ", imagen='" + imagen + '\'' +
-                '}';
+        return "Producto [codigo=" + codigo + ", nombre=" + nombre + ", descripcion=" + descripcion + ", categoria="
+                + categoria + ", precio=" + precio + ", stockActual=" + stockActual + ", stockCritico=" + stockCritico
+                + ", imagen=" + imagen + "]";
     }
+
+    
 }

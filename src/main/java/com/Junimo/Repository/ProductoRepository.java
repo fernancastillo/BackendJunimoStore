@@ -10,7 +10,7 @@ import java.util.List;
  */
 
 
-public interface ProductoRepository extends JpaRepository<Producto, Integer> {
+public interface ProductoRepository extends JpaRepository<Producto, String> {
     
   
     public Producto findByNombre(String nombre);

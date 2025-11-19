@@ -38,7 +38,7 @@ public class ProductoController {
     }
     
     @GetMapping("/productoById/{codigo}")
-    public Producto findProductoById(@PathVariable int codigo){
+    public Producto findProductoById(@PathVariable String codigo){
         return service.getProductoById(codigo);
     }
     
@@ -70,7 +70,7 @@ public class ProductoController {
     }
     
     @DeleteMapping("/deleteProducto/{codigo}")
-    public String deleteProducto(@PathVariable int codigo){
+    public String deleteProducto(@PathVariable String codigo){
         return service.deleteProducto(codigo);
     }
     

@@ -2,6 +2,7 @@ package com.Junimo.Entity;
 
 import java.sql.Date;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 
 /**
  *
@@ -12,6 +13,7 @@ import jakarta.persistence.*;
 public class Usuario {
     
     @Id
+    @Column(name = "run", nullable = false)
     private int run;
     
     @Column(name="nombre", length=40, nullable = false)
@@ -21,6 +23,7 @@ public class Usuario {
     private String apellidos;
     
     @Column(name="correo", length=100, nullable = false)
+    @Email
     private String correo;
 
     @Column(name="direccion", length=200, nullable = false)
@@ -36,12 +39,12 @@ public class Usuario {
     private String comuna;
 
     @Column(name="telefono", length=9, nullable = true)
-    private int telefono;
+    private Integer telefono;
 
     @Column(name="tipo", nullable = false)
     private String tipo;
 
-    @Column(name="contrasenha", length=10, nullable = false)
+    @Column(name="contrasenha", length=100, nullable = false)
     private String contrasenha;
 
 
@@ -109,11 +112,11 @@ public class Usuario {
         this.comuna = comuna;
     }
 
-    public int getTelefono() {
+    public Integer getTelefono() {
         return telefono;
     }
 
-    public void setTelefono(int telefono) {
+    public void setTelefono(Integer telefono) {
         this.telefono = telefono;
     }
 
