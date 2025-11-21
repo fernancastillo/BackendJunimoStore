@@ -5,6 +5,8 @@ import com.Junimo.Service.OrdenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
+
 
 /**
  *
@@ -36,6 +38,19 @@ public class OrdenController {
     @PutMapping("/updateOrden")
     public Orden updateOrden(@RequestBody Orden o) {
         return service.updateOrden(o);
+    }
+
+    // Nuevo endpoint específico para actualizar solo el estado
+    @PutMapping("/updateOrdenEstado")
+    public Orden updateOrdenEstado(@RequestBody Map<String, String> request) {
+        String numeroOrden = request.get("numeroOrden");
+        String nuevoEstado = request.get("estadoEnvio");
+        
+        if (numeroOrden == null || nuevoEstado == null) {
+            throw new RuntimeException("Se requieren numeroOrden y estadoEnvio");
+        }
+        
+        return service.updateOrdenEstado(numeroOrden, nuevoEstado);
     }
 
     @DeleteMapping("/deleteOrden/{numero}")

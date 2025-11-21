@@ -13,11 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.util.List;
 
-/**
- *
- * @author Fernando
- */
-
 @Service
 public class OrdenService {
 
@@ -87,18 +82,38 @@ public class OrdenService {
         return "Orden " + numero + " eliminada correctamente.";
     }
 
+    @Transactional
     public Orden updateOrden(Orden o) {
-        Orden existingOrden = ordenRepository.findById(o.getNumeroOrden()).orElse(null);
-        if (existingOrden == null) {
-            throw new RuntimeException("Orden con número de órden: " + o.getNumeroOrden() + ", no encontrado.");
+        try {
+            Orden existingOrden = ordenRepository.findById(o.getNumeroOrden())
+                    .orElseThrow(() -> new RuntimeException("Orden con número: " + o.getNumeroOrden() + " no encontrada."));
+            
+            // Actualizar solo los campos que vienen en la petición
+            if (o.getEstadoEnvio() != null) {
+                existingOrden.setEstadoEnvio(o.getEstadoEnvio());
+            }
+            
+            // No actualizar usuario, fecha, total ni detalles si no vienen en la petición
+            // Mantener los valores existentes para estos campos
+            
+            return ordenRepository.save(existingOrden);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al actualizar la orden: " + e.getMessage());
         }
-        existingOrden.setUsuario(o.getUsuario());
-        existingOrden.setFecha(o.getFecha());
-        existingOrden.setEstadoEnvio(o.getEstadoEnvio());
-        existingOrden.setTotal(o.getTotal());
-        existingOrden.setDetalles(o.getDetalles());
+    }
 
-        return ordenRepository.save(existingOrden);
+    // Método específico para actualizar solo el estado
+    @Transactional
+    public Orden updateOrdenEstado(String numeroOrden, String nuevoEstado) {
+        try {
+            Orden existingOrden = ordenRepository.findById(numeroOrden)
+                    .orElseThrow(() -> new RuntimeException("Orden con número: " + numeroOrden + " no encontrada."));
+            
+            existingOrden.setEstadoEnvio(nuevoEstado);
+            return ordenRepository.save(existingOrden);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al actualizar el estado de la orden: " + e.getMessage());
+        }
     }
 
     public List<Orden> getOrdenByRun(int run) {
