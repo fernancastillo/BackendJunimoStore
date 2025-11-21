@@ -13,6 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.util.List;
 
+/**
+ *
+ * @author Fernando
+ */
+
 @Service
 public class OrdenService {
 
@@ -28,59 +33,47 @@ public class OrdenService {
     @Autowired
     private DetalleOrdenService detalleOrdenService;
 
-    // MÉTODO CORREGIDO para guardar orden con detalles
     @Transactional
     public Orden saveOrden(Orden ordenRequest) {
         try {
-            System.out.println("🔄 Procesando orden: " + ordenRequest.getNumeroOrden());
-            
-            // 1. Verificar que el usuario existe
             Usuario usuario = usuarioRepository.findById(ordenRequest.getUsuario().getRun())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con RUN: " + ordenRequest.getUsuario().getRun()));
-            
-            // 2. Crear y guardar la orden principal (sin detalles primero)
+                    .orElseThrow(() -> new RuntimeException(
+                            "Usuario no encontrado con RUN: " + ordenRequest.getUsuario().getRun()));
             Orden orden = new Orden();
             orden.setNumeroOrden(ordenRequest.getNumeroOrden());
             orden.setFecha(ordenRequest.getFecha());
             orden.setUsuario(usuario);
             orden.setEstadoEnvio(ordenRequest.getEstadoEnvio());
             orden.setTotal(ordenRequest.getTotal());
-            
-            // Guardar orden principal primero
             Orden ordenGuardada = ordenRepository.save(orden);
-            System.out.println("✅ Orden principal guardada: " + ordenGuardada.getNumeroOrden());
-
-            // 3. Guardar los detalles de la orden
+            
             if (ordenRequest.getDetalles() != null && !ordenRequest.getDetalles().isEmpty()) {
                 for (DetalleOrden detalleRequest : ordenRequest.getDetalles()) {
-                    // Verificar que el producto existe
                     Producto producto = productoRepository.findById(detalleRequest.getProducto().getCodigo())
-                        .orElseThrow(() -> new RuntimeException("Producto no encontrado con código: " + detalleRequest.getProducto().getCodigo()));
-                    
-                    // Crear detalle
+                            .orElseThrow(() -> new RuntimeException(
+                                    "Producto no encontrado con código: " + detalleRequest.getProducto().getCodigo()));
+                    if (producto.getStockActual() < detalleRequest.getCantidad()) {
+                        throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre() +
+                                ". Stock disponible: " + producto.getStockActual() +
+                                ", solicitado: " + detalleRequest.getCantidad());
+                    }
+                    int nuevoStock = producto.getStockActual() - detalleRequest.getCantidad();
+                    producto.setStockActual(nuevoStock);
+                    productoRepository.save(producto);
                     DetalleOrden detalle = new DetalleOrden();
                     detalle.setOrden(ordenGuardada);
                     detalle.setProducto(producto);
                     detalle.setCantidad(detalleRequest.getCantidad());
-                    
-                    // Guardar detalle
                     detalleOrdenService.saveDetalle(detalle);
-                    System.out.println("✅ Detalle guardado - Producto: " + producto.getCodigo() + ", Cantidad: " + detalle.getCantidad());
                 }
             }
-            
-            // 4. Retornar la orden completa
             return ordenRepository.findById(ordenGuardada.getNumeroOrden())
-                .orElseThrow(() -> new RuntimeException("Error al recuperar orden guardada"));
-            
+                    .orElseThrow(() -> new RuntimeException("Error al recuperar orden guardada"));
         } catch (Exception e) {
-            System.err.println("❌ Error al guardar orden: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Error al procesar la orden: " + e.getMessage());
         }
     }
 
-    // Los demás métodos permanecen igual...
     public List<Orden> getOrdenes() {
         return ordenRepository.findAll();
     }
@@ -108,15 +101,15 @@ public class OrdenService {
         return ordenRepository.save(existingOrden);
     }
 
-    public List<Orden> getOrdenByRun(int run){
+    public List<Orden> getOrdenByRun(int run) {
         return ordenRepository.findByUsuarioRun(run);
     }
 
-    public List<Orden> getOrdenByEstado(String estado){
+    public List<Orden> getOrdenByEstado(String estado) {
         return ordenRepository.findByEstadoEnvio(estado);
     }
 
-    public List<Orden> getOrdenByFecha(Date fecha){
+    public List<Orden> getOrdenByFecha(Date fecha) {
         return ordenRepository.findByFecha(fecha);
     }
 }
