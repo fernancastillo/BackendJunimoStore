@@ -27,5 +27,4 @@ public class DetalleOrdenService {
     public DetalleOrden getDetalleById(int id){
         return repository.findById(id).orElse(null);
     }
-
 }

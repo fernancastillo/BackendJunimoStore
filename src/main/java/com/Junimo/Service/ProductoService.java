@@ -6,12 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
-
 /**
  *
  * @author scarleth
  */
-
 
 @Service
 public class ProductoService {
@@ -37,10 +35,6 @@ public class ProductoService {
     
     public List<Producto> getProductosByCategoria(int categoriaId) {
         return repository.findByCategoriaId(categoriaId);
-    }
-    
-    public List<Producto> getProductosByNombreContaining(String nombre) {
-        return repository.findByNombreContainingIgnoreCase(nombre);
     }
     
     public List<Producto> getProductosStockCritico() {

@@ -78,6 +78,9 @@ public class OrdenService {
     }
 
     public String deleteOrden(String numero) {
+        if (!ordenRepository.existsById(numero)) {
+            throw new RuntimeException("No se puede eliminar. Orden con número " + numero + " no existe");
+        }
         ordenRepository.deleteById(numero);
         return "Orden " + numero + " eliminada correctamente.";
     }
@@ -87,22 +90,15 @@ public class OrdenService {
         try {
             Orden existingOrden = ordenRepository.findById(o.getNumeroOrden())
                     .orElseThrow(() -> new RuntimeException("Orden con número: " + o.getNumeroOrden() + " no encontrada."));
-            
-            // Actualizar solo los campos que vienen en la petición
             if (o.getEstadoEnvio() != null) {
                 existingOrden.setEstadoEnvio(o.getEstadoEnvio());
-            }
-            
-            // No actualizar usuario, fecha, total ni detalles si no vienen en la petición
-            // Mantener los valores existentes para estos campos
-            
+            }     
             return ordenRepository.save(existingOrden);
         } catch (Exception e) {
             throw new RuntimeException("Error al actualizar la orden: " + e.getMessage());
         }
     }
 
-    // Método específico para actualizar solo el estado
     @Transactional
     public Orden updateOrdenEstado(String numeroOrden, String nuevoEstado) {
         try {

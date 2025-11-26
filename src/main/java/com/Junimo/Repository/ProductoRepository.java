@@ -20,10 +20,7 @@ public interface ProductoRepository extends JpaRepository<Producto, String> {
     
 
     public List<Producto> findByStockActualLessThanEqual(int stockCritico);
-    
-   
-    public List<Producto> findByNombreContainingIgnoreCase(String nombre);
-    
+        
 
     public List<Producto> findByPrecioBetween(double precioMin, double precioMax);
 }
