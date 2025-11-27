@@ -10,10 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-/**
- *
- * @author Fernando
- */
 @RestController
 @RequestMapping("/v1")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -25,16 +21,29 @@ public class OrdenController {
     @PostMapping("/addOrden")
     public ResponseEntity<?> addOrden(@RequestBody Orden o) {
         try {
+            if (o.getUsuario() == null) {
+                return ResponseEntity.badRequest().body(Map.of("mensaje", "El usuario es requerido"));
+            }
+            
+            if (o.getDetalles() == null || o.getDetalles().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("mensaje", "La orden debe tener al menos un producto"));
+            }
+            
+            if (o.getTotal() <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("mensaje", "El total debe ser mayor a 0"));
+            }
+            
             Orden ordenGuardada = service.saveOrden(o);
             return ResponseEntity.ok(ordenGuardada);
+            
         } catch (RuntimeException e) {
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al crear la orden: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            response.put("mensaje", "Error interno del servidor al crear la orden: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 

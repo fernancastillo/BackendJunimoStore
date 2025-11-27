@@ -27,12 +27,20 @@ import com.Junimo.Service.UsuarioService;
 @RequestMapping("/v1")
 @CrossOrigin(origins = "http://localhost:5173")
 public class UsuarioController {
-    
+
+    @GetMapping("/")
+    public ResponseEntity<?> getApiStatus() {
+        Map<String, String> response = new HashMap<>();
+        response.put("mensaje", "API levantada");
+        response.put("estado", "Todo bien");
+        return ResponseEntity.ok(response);
+    }
+
     @Autowired
     private UsuarioService service;
-    
+
     @PostMapping("/addUsuario")
-    public ResponseEntity<?> addUsuario(@RequestBody Usuario u){
+    public ResponseEntity<?> addUsuario(@RequestBody Usuario u) {
         try {
             Usuario usuarioGuardado = service.saveUsuario(u);
             return ResponseEntity.ok(usuarioGuardado);
@@ -44,7 +52,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/usuariosById/{run}")
-    public ResponseEntity<?> findUsuarioById(@PathVariable int run){
+    public ResponseEntity<?> findUsuarioById(@PathVariable int run) {
         try {
             Usuario usuario = service.getUsuarioById(run);
             if (usuario == null) {
@@ -59,9 +67,9 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     @GetMapping("/usuarios")
-    public ResponseEntity<?> findAllUsuario(){
+    public ResponseEntity<?> findAllUsuario() {
         try {
             List<Usuario> usuarios = service.getUsuarios();
             if (usuarios.isEmpty()) {
@@ -76,9 +84,9 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     @DeleteMapping("/deleteUsuario/{run}")
-    public ResponseEntity<?> deleteUsuario(@PathVariable int run){
+    public ResponseEntity<?> deleteUsuario(@PathVariable int run) {
         try {
             Usuario usuarioExistente = service.getUsuarioById(run);
             if (usuarioExistente == null) {
@@ -86,7 +94,7 @@ public class UsuarioController {
                 response.put("mensaje", "No se puede eliminar. Usuario con RUN " + run + " no existe");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             String resultado = service.deleteUsuario(run);
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", resultado);
@@ -97,9 +105,9 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     @PutMapping("/updateUsuario")
-    public ResponseEntity<?> updateUsuario(@RequestBody Usuario u){
+    public ResponseEntity<?> updateUsuario(@RequestBody Usuario u) {
         try {
             Usuario usuarioActualizado = service.updateUsuario(u);
             return ResponseEntity.ok(usuarioActualizado);
@@ -115,7 +123,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/usuariosByCorreo/{correo}")
-    public ResponseEntity<?> findUsuarioByCorreo(@PathVariable String correo){
+    public ResponseEntity<?> findUsuarioByCorreo(@PathVariable String correo) {
         try {
             Usuario usuario = service.getUsuarioByCorreo(correo);
             if (usuario == null) {
@@ -132,7 +140,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/usuariosByTipo/{tipo}")
-    public ResponseEntity<?> findUsuarioByTipo(@PathVariable String tipo){
+    public ResponseEntity<?> findUsuarioByTipo(@PathVariable String tipo) {
         try {
             Usuario usuario = service.getUsuarioByTipo(tipo);
             if (usuario == null) {
@@ -147,7 +155,7 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception e) {
         Map<String, String> response = new HashMap<>();

@@ -1,5 +1,7 @@
 package com.Junimo.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import java.sql.Date;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "ORDEN")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Orden {
 
     @Id
@@ -19,8 +22,9 @@ public class Orden {
     @Column(nullable = false)
     private Date fecha;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER) // Cambiado a EAGER para evitar problemas
     @JoinColumn(name = "run", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Usuario usuario;
 
     @Column(name = "estado_envio", nullable = false, length = 50)
@@ -29,8 +33,11 @@ public class Orden {
     @Column(nullable = false)
     private int total;
 
-    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"orden", "hibernateLazyInitializer", "handler"})
     private List<DetalleOrden> detalles;
+
+    // ... getters y setters
 
     public String getNumeroOrden() {
         return numeroOrden;
@@ -82,10 +89,8 @@ public class Orden {
 
     @Override
     public String toString() {
-        return "Orden [numeroOrden=" + numeroOrden + ", fecha=" + fecha + ", usuario=" + usuario + ", estadoEnvio="
-                + estadoEnvio + ", total=" + total + ", detalles=" + detalles + "]";
+        return "Orden [numeroOrden=" + numeroOrden + ", fecha=" + fecha + ", usuario=" + 
+               (usuario != null ? usuario.getRun() : "null") + ", estadoEnvio=" + estadoEnvio + 
+               ", total=" + total + ", detalles=" + (detalles != null ? detalles.size() : 0) + " items]";
     }
-
-    
-
 }

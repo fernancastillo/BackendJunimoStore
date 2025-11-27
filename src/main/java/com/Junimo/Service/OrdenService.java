@@ -31,41 +31,68 @@ public class OrdenService {
     @Transactional
     public Orden saveOrden(Orden ordenRequest) {
         try {
-            Usuario usuario = usuarioRepository.findById(ordenRequest.getUsuario().getRun())
+            if (ordenRequest.getUsuario() == null) {
+                throw new RuntimeException("El usuario es requerido");
+            }
+            
+            int runUsuario = ordenRequest.getUsuario().getRun();
+            
+            if (runUsuario == 0) {
+                throw new RuntimeException("RUN de usuario es inválido");
+            }
+            
+            Usuario usuario = usuarioRepository.findById(runUsuario)
                     .orElseThrow(() -> new RuntimeException(
-                            "Usuario no encontrado con RUN: " + ordenRequest.getUsuario().getRun()));
+                            "Usuario no encontrado con RUN: " + runUsuario));
+            
             Orden orden = new Orden();
             orden.setNumeroOrden(ordenRequest.getNumeroOrden());
             orden.setFecha(ordenRequest.getFecha());
             orden.setUsuario(usuario);
-            orden.setEstadoEnvio(ordenRequest.getEstadoEnvio());
+            orden.setEstadoEnvio("Pendiente");
             orden.setTotal(ordenRequest.getTotal());
+            
+            if (ordenRequest.getDetalles() == null || ordenRequest.getDetalles().isEmpty()) {
+                throw new RuntimeException("La orden debe tener al menos un producto");
+            }
+            
             Orden ordenGuardada = ordenRepository.save(orden);
             
-            if (ordenRequest.getDetalles() != null && !ordenRequest.getDetalles().isEmpty()) {
-                for (DetalleOrden detalleRequest : ordenRequest.getDetalles()) {
-                    Producto producto = productoRepository.findById(detalleRequest.getProducto().getCodigo())
-                            .orElseThrow(() -> new RuntimeException(
-                                    "Producto no encontrado con código: " + detalleRequest.getProducto().getCodigo()));
-                    if (producto.getStockActual() < detalleRequest.getCantidad()) {
-                        throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre() +
-                                ". Stock disponible: " + producto.getStockActual() +
-                                ", solicitado: " + detalleRequest.getCantidad());
-                    }
-                    int nuevoStock = producto.getStockActual() - detalleRequest.getCantidad();
-                    producto.setStockActual(nuevoStock);
-                    productoRepository.save(producto);
-                    DetalleOrden detalle = new DetalleOrden();
-                    detalle.setOrden(ordenGuardada);
-                    detalle.setProducto(producto);
-                    detalle.setCantidad(detalleRequest.getCantidad());
-                    detalleOrdenService.saveDetalle(detalle);
+            for (DetalleOrden detalleRequest : ordenRequest.getDetalles()) {
+                if (detalleRequest.getProducto() == null || detalleRequest.getProducto().getCodigo() == null) {
+                    throw new RuntimeException("Producto no válido en detalle");
                 }
+                
+                String codigoProducto = detalleRequest.getProducto().getCodigo();
+                Producto producto = productoRepository.findById(codigoProducto)
+                        .orElseThrow(() -> new RuntimeException(
+                                "Producto no encontrado con código: " + codigoProducto));
+                
+                if (producto.getStockActual() < detalleRequest.getCantidad()) {
+                    throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre() +
+                            ". Stock disponible: " + producto.getStockActual() +
+                            ", solicitado: " + detalleRequest.getCantidad());
+                }
+                
+                int nuevoStock = producto.getStockActual() - detalleRequest.getCantidad();
+                producto.setStockActual(nuevoStock);
+                productoRepository.save(producto);
+                
+                DetalleOrden detalle = new DetalleOrden();
+                detalle.setOrden(ordenGuardada);
+                detalle.setProducto(producto);
+                detalle.setCantidad(detalleRequest.getCantidad());
+                
+                detalleOrdenService.saveDetalle(detalle);
             }
+            
             return ordenRepository.findById(ordenGuardada.getNumeroOrden())
                     .orElseThrow(() -> new RuntimeException("Error al recuperar orden guardada"));
+                    
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Error al procesar la orden: " + e.getMessage());
+            throw new RuntimeException("Error interno al procesar la orden: " + e.getMessage());
         }
     }
 

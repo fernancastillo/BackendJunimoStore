@@ -1,8 +1,7 @@
 package com.Junimo.Entity;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 
 /**
@@ -11,23 +10,27 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "DETALLE_ORDEN")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DetalleOrden {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "numero_orden", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties({"detalles", "usuario", "hibernateLazyInitializer", "handler"})
     private Orden orden;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "codigo_producto", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Producto producto;
 
     @Column(nullable = false)
     private int cantidad;
+
+    // ... getters y setters
 
     public int getId() {
         return id;
@@ -63,7 +66,8 @@ public class DetalleOrden {
 
     @Override
     public String toString() {
-        return "DetalleOrden [id=" + id + ", orden=" + orden 
-                + ", producto=" + producto + ", cantidad=" + cantidad + "]";
+        return "DetalleOrden [id=" + id + ", orden=" + (orden != null ? orden.getNumeroOrden() : "null") 
+                + ", producto=" + (producto != null ? producto.getCodigo() : "null") 
+                + ", cantidad=" + cantidad + "]";
     }
 }

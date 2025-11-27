@@ -60,10 +60,12 @@ public class DetalleOrdenController {
     public ResponseEntity<?> addDetalle(@RequestBody DetalleOrden d) {
         try {
             DetalleOrden detalleGuardado = service.saveDetalle(d);
+            // MANTENER 200 OK para compatibilidad con frontend existente
             return ResponseEntity.ok(detalleGuardado);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al crear el detalle de orden: " + e.getMessage());
+            // El mensaje de error mantiene el mismo formato
+            response.put("mensaje", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
