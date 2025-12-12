@@ -3,7 +3,6 @@ package com.Junimo.Controller;
 import com.Junimo.Entity.Orden;
 import com.Junimo.Service.OrdenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -14,12 +13,155 @@ import java.util.HashMap;
 @RequestMapping("/v1")
 @CrossOrigin(origins = "http://localhost:5173")
 public class OrdenController {
-
+    
     @Autowired
     private OrdenService service;
-
+    
+    // Mismo método de validación que en los otros controllers
+    private boolean validarApiKey(String apiKey, String... rolesPermitidos) {
+        // Mapa de API Keys -> Tipo de usuario
+        Map<String, String> keys = new HashMap<>();
+        keys.put("admin", "Administrador");
+        keys.put("vendedor", "Vendedor"); 
+        keys.put("cliente", "Cliente");
+        
+        // Verificar si la key existe
+        String rol = keys.get(apiKey);
+        if (rol == null) {
+            return false;
+        }
+        
+        // Si no se especifican roles, cualquier key válida sirve
+        if (rolesPermitidos.length == 0) {
+            return true;
+        }
+        
+        // Verificar si el rol está permitido
+        for (String rolPermitido : rolesPermitidos) {
+            if (rolPermitido.equals(rol)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    // ========== MÉTODOS PROTEGIDOS ==========
+    
+    @GetMapping("/ordenes")
+    public ResponseEntity<?> getAllOrdenes(
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Admin y Vendedor pueden ver todas las órdenes
+        if (!validarApiKey(apiKey, "Administrador", "Vendedor")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador o Vendedor requerida"));
+        }
+        
+        try {
+            List<Orden> ordenes = service.getOrdenes();
+            if (ordenes.isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("mensaje", "No hay órdenes registradas en el sistema");
+                return ResponseEntity.ok(response);
+            }
+            return ResponseEntity.ok(ordenes);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("mensaje", "Error al obtener la lista de órdenes: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @GetMapping("/OrdenByNumero/{numero}")
+    public ResponseEntity<?> getOrden(
+            @PathVariable String numero,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Admin y Vendedor pueden ver órdenes específicas
+        if (!validarApiKey(apiKey, "Administrador", "Vendedor")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador o Vendedor requerida"));
+        }
+        
+        try {
+            Orden orden = service.getOrdenByNumero(numero);
+            if (orden == null) {
+                Map<String, String> response = new HashMap<>();
+                response.put("mensaje", "Orden con número " + numero + " no encontrada");
+                return ResponseEntity.status(404).body(response);
+            }
+            return ResponseEntity.ok(orden);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("mensaje", "Error al buscar orden: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @GetMapping("/ordenesByUsuario/{run}")
+    public ResponseEntity<?> getOrdenesByUsuario(
+            @PathVariable int run,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Admin, Vendedor y Cliente pueden ver órdenes por usuario
+        if (!validarApiKey(apiKey, "Administrador", "Vendedor", "Cliente")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key válida requerida (Admin, Vendedor o Cliente)"));
+        }
+        
+        try {
+            List<Orden> ordenes = service.getOrdenByRun(run);
+            if (ordenes.isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("mensaje", "No hay órdenes registradas para el usuario con RUN: " + run);
+                return ResponseEntity.ok(response);
+            }
+            return ResponseEntity.ok(ordenes);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("mensaje", "Error al buscar órdenes por usuario: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @GetMapping("/ordenesByEstado/{estado}")
+    public ResponseEntity<?> getOrdenesByEstado(
+            @PathVariable String estado,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Admin y Vendedor pueden ver órdenes por estado
+        if (!validarApiKey(apiKey, "Administrador", "Vendedor")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador o Vendedor requerida"));
+        }
+        
+        try {
+            List<Orden> ordenes = service.getOrdenByEstado(estado);
+            if (ordenes.isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("mensaje", "No hay órdenes con estado: " + estado);
+                return ResponseEntity.ok(response);
+            }
+            return ResponseEntity.ok(ordenes);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("mensaje", "Error al buscar órdenes por estado: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
     @PostMapping("/addOrden")
-    public ResponseEntity<?> addOrden(@RequestBody Orden o) {
+    public ResponseEntity<?> addOrden(
+            @RequestBody Orden o,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Cliente puede crear órdenes
+        if (!validarApiKey(apiKey, "Cliente")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Cliente requerida"));
+        }
+        
         try {
             if (o.getUsuario() == null) {
                 return ResponseEntity.badRequest().body(Map.of("mensaje", "El usuario es requerido"));
@@ -43,62 +185,46 @@ public class OrdenController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", "Error interno del servidor al crear la orden: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(500).body(response);
         }
     }
-
-    @GetMapping("/ordenes")
-    public ResponseEntity<?> getAllOrdenes() {
-        try {
-            List<Orden> ordenes = service.getOrdenes();
-            if (ordenes.isEmpty()) {
-                Map<String, String> response = new HashMap<>();
-                response.put("mensaje", "No hay órdenes registradas en el sistema");
-                return ResponseEntity.ok(response);
-            }
-            return ResponseEntity.ok(ordenes);
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al obtener la lista de órdenes: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-
-    @GetMapping("/OrdenByNumero/{numero}")
-    public ResponseEntity<?> getOrden(@PathVariable String numero) {
-        try {
-            Orden orden = service.getOrdenByNumero(numero);
-            if (orden == null) {
-                Map<String, String> response = new HashMap<>();
-                response.put("mensaje", "Orden con número " + numero + " no encontrada");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-            return ResponseEntity.ok(orden);
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al buscar orden: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-
+    
     @PutMapping("/updateOrden")
-    public ResponseEntity<?> updateOrden(@RequestBody Orden o) {
+    public ResponseEntity<?> updateOrden(
+            @RequestBody Orden o,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin puede actualizar órdenes
+        if (!validarApiKey(apiKey, "Administrador")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador requerida"));
+        }
+        
         try {
             Orden ordenActualizada = service.updateOrden(o);
             return ResponseEntity.ok(ordenActualizada);
         } catch (RuntimeException e) {
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(404).body(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", "Error al actualizar la orden: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
-
+    
     @PutMapping("/updateOrdenEstado")
-    public ResponseEntity<?> updateOrdenEstado(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> updateOrdenEstado(
+            @RequestBody Map<String, String> request,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin puede actualizar estado de órdenes
+        if (!validarApiKey(apiKey, "Administrador")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador requerida"));
+        }
+        
         try {
             String numeroOrden = request.get("numeroOrden");
             String nuevoEstado = request.get("estadoEnvio");
@@ -114,16 +240,25 @@ public class OrdenController {
         } catch (RuntimeException e) {
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(404).body(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", "Error al actualizar el estado de la orden: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
-
+    
     @DeleteMapping("/deleteOrden/{numero}")
-    public ResponseEntity<?> deleteOrden(@PathVariable String numero) {
+    public ResponseEntity<?> deleteOrden(
+            @PathVariable String numero,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin puede eliminar órdenes
+        if (!validarApiKey(apiKey, "Administrador")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador requerida"));
+        }
+        
         try {
             String resultado = service.deleteOrden(numero);
             Map<String, String> response = new HashMap<>();
@@ -135,45 +270,11 @@ public class OrdenController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-
-    @GetMapping("/ordenesByUsuario/{run}")
-    public ResponseEntity<?> getOrdenesByUsuario(@PathVariable int run) {
-        try {
-            List<Orden> ordenes = service.getOrdenByRun(run);
-            if (ordenes.isEmpty()) {
-                Map<String, String> response = new HashMap<>();
-                response.put("mensaje", "No hay órdenes registradas para el usuario con RUN: " + run);
-                return ResponseEntity.ok(response);
-            }
-            return ResponseEntity.ok(ordenes);
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al buscar órdenes por usuario: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-
-    @GetMapping("/ordenesByEstado/{estado}")
-    public ResponseEntity<?> getOrdenesByEstado(@PathVariable String estado) {
-        try {
-            List<Orden> ordenes = service.getOrdenByEstado(estado);
-            if (ordenes.isEmpty()) {
-                Map<String, String> response = new HashMap<>();
-                response.put("mensaje", "No hay órdenes con estado: " + estado);
-                return ResponseEntity.ok(response);
-            }
-            return ResponseEntity.ok(ordenes);
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al buscar órdenes por estado: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception e) {
         Map<String, String> response = new HashMap<>();
         response.put("mensaje", "Error en el servidor: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(500).body(response);
     }
 }

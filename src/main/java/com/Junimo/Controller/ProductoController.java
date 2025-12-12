@@ -1,30 +1,13 @@
 package com.Junimo.Controller;
 
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.Junimo.Entity.Producto;
 import com.Junimo.Service.ProductoService;
-
-/**
- *
- * @author scarleth
- */
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/v1")
@@ -34,20 +17,40 @@ public class ProductoController {
     @Autowired
     private ProductoService service;
     
-    @PostMapping("/addProducto")
-    public ResponseEntity<?> addProducto(@RequestBody Producto producto){
-        try {
-            Producto productoGuardado = service.saveProducto(producto);
-            return ResponseEntity.ok(productoGuardado);
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al crear el producto: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+    // Mismo método de validación que en los otros controllers
+    private boolean validarApiKey(String apiKey, String... rolesPermitidos) {
+        // Mapa de API Keys -> Tipo de usuario
+        Map<String, String> keys = new HashMap<>();
+        keys.put("admin", "Administrador");
+        keys.put("vendedor", "Vendedor"); 
+        keys.put("cliente", "Cliente");
+        
+        // Verificar si la key existe
+        String rol = keys.get(apiKey);
+        if (rol == null) {
+            return false;
         }
+        
+        // Si no se especifican roles, cualquier key válida sirve
+        if (rolesPermitidos.length == 0) {
+            return true;
+        }
+        
+        // Verificar si el rol está permitido
+        for (String rolPermitido : rolesPermitidos) {
+            if (rolPermitido.equals(rol)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
+    // ========== MÉTODOS PÚBLICOS (SIN API KEY) ==========
+    
     @GetMapping("/productos")
-    public ResponseEntity<?> findAllProductos(){
+    public ResponseEntity<?> findAllProductos() {
+        // Este endpoint NO requiere autenticación
         try {
             List<Producto> productos = service.getProductos();
             if (productos.isEmpty()) {
@@ -64,13 +67,14 @@ public class ProductoController {
     }
     
     @GetMapping("/productoById/{codigo}")
-    public ResponseEntity<?> findProductoById(@PathVariable String codigo){
+    public ResponseEntity<?> findProductoById(@PathVariable String codigo) {
+        // Este endpoint NO requiere autenticación
         try {
             Producto producto = service.getProductoById(codigo);
             if (producto == null) {
                 Map<String, String> response = new HashMap<>();
                 response.put("mensaje", "Producto con código " + codigo + " no encontrado");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                return ResponseEntity.status(404).body(response);
             }
             return ResponseEntity.ok(producto);
         } catch (Exception e) {
@@ -81,13 +85,14 @@ public class ProductoController {
     }
     
     @GetMapping("/productoByName/{nombre}")
-    public ResponseEntity<?> findByNombre(@PathVariable String nombre){
+    public ResponseEntity<?> findByNombre(@PathVariable String nombre) {
+        // Este endpoint NO requiere autenticación
         try {
             Producto producto = service.getProductoByNombre(nombre);
             if (producto == null) {
                 Map<String, String> response = new HashMap<>();
                 response.put("mensaje", "Producto con nombre '" + nombre + "' no encontrado");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                return ResponseEntity.status(404).body(response);
             }
             return ResponseEntity.ok(producto);
         } catch (Exception e) {
@@ -98,7 +103,8 @@ public class ProductoController {
     }
     
     @GetMapping("/productosByCategoria/{categoriaId}")
-    public ResponseEntity<?> findProductosByCategoria(@PathVariable int categoriaId){
+    public ResponseEntity<?> findProductosByCategoria(@PathVariable int categoriaId) {
+        // Este endpoint NO requiere autenticación
         try {
             List<Producto> productos = service.getProductosByCategoria(categoriaId);
             if (productos.isEmpty()) {
@@ -113,9 +119,19 @@ public class ProductoController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-        
+    
+    // ========== MÉTODOS PROTEGIDOS ==========
+    
     @GetMapping("/productosStockCritico")
-    public ResponseEntity<?> findProductosStockCritico(){
+    public ResponseEntity<?> findProductosStockCritico(
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin y Vendedor pueden ver stock crítico
+        if (!validarApiKey(apiKey, "Administrador", "Vendedor")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador o Vendedor requerida"));
+        }
+        
         try {
             List<Producto> productos = service.getProductosStockCritico();
             if (productos.isEmpty()) {
@@ -134,7 +150,15 @@ public class ProductoController {
     @GetMapping("/productosByPrecio")
     public ResponseEntity<?> findProductosByPrecioBetween(
             @RequestParam double precioMin, 
-            @RequestParam double precioMax){
+            @RequestParam double precioMax,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin y Vendedor pueden buscar por rango de precio
+        if (!validarApiKey(apiKey, "Administrador", "Vendedor")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador o Vendedor requerida"));
+        }
+        
         try {
             List<Producto> productos = service.getProductosByPrecioBetween(precioMin, precioMax);
             if (productos.isEmpty()) {
@@ -150,14 +174,70 @@ public class ProductoController {
         }
     }
     
+    @PostMapping("/addProducto")
+    public ResponseEntity<?> addProducto(
+            @RequestBody Producto producto,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin puede crear productos
+        if (!validarApiKey(apiKey, "Administrador")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador requerida"));
+        }
+        
+        try {
+            Producto productoGuardado = service.saveProducto(producto);
+            return ResponseEntity.ok(productoGuardado);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("mensaje", "Error al crear el producto: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PutMapping("/updateProducto")
+    public ResponseEntity<?> updateProducto(
+            @RequestBody Producto producto,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin puede actualizar productos
+        if (!validarApiKey(apiKey, "Administrador")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador requerida"));
+        }
+        
+        try {
+            Producto productoActualizado = service.updateProducto(producto);
+            if (productoActualizado == null) {
+                Map<String, String> response = new HashMap<>();
+                response.put("mensaje", "No se puede actualizar. Producto con código " + producto.getCodigo() + " no existe");
+                return ResponseEntity.status(404).body(response);
+            }
+            return ResponseEntity.ok(productoActualizado);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("mensaje", "Error al actualizar producto: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
     @DeleteMapping("/deleteProducto/{codigo}")
-    public ResponseEntity<?> deleteProducto(@PathVariable String codigo){
+    public ResponseEntity<?> deleteProducto(
+            @PathVariable String codigo,
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        
+        // Solo Admin puede eliminar productos
+        if (!validarApiKey(apiKey, "Administrador")) {
+            return ResponseEntity.status(401)
+                .body(Map.of("error", "API Key de Administrador requerida"));
+        }
+        
         try {
             String resultado = service.deleteProducto(codigo);
             Map<String, String> response = new HashMap<>();
             if (resultado.contains("no encontrado")) {
                 response.put("mensaje", resultado);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                return ResponseEntity.status(404).body(response);
             }
             response.put("mensaje", resultado);
             return ResponseEntity.ok(response);
@@ -168,27 +248,10 @@ public class ProductoController {
         }
     }
     
-    @PutMapping("/updateProducto")
-    public ResponseEntity<?> updateProducto(@RequestBody Producto producto){
-        try {
-            Producto productoActualizado = service.updateProducto(producto);
-            if (productoActualizado == null) {
-                Map<String, String> response = new HashMap<>();
-                response.put("mensaje", "No se puede actualizar. Producto con código " + producto.getCodigo() + " no existe");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-            return ResponseEntity.ok(productoActualizado);
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Error al actualizar producto: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception e) {
         Map<String, String> response = new HashMap<>();
         response.put("mensaje", "Error en el servidor: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(500).body(response);
     }
 }
